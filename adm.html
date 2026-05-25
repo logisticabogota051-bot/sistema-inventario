@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventario Global Pro</title>
+    
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/package.png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root { 
+            --globant-green: #077353; 
+            --globant-green-light: #0d966e; 
+            --globant-dark-bg: #111e1a; 
+            --globant-card-bg: #1c2e29;
+            --font-family: 'Heebo', sans-serif;
+        }
+        
+        body { 
+            font-family: var(--font-family); 
+            background: #f4f7f6;
+            background-image: radial-gradient(var(--globant-green) 0.5px, transparent 0.5px), radial-gradient(var(--globant-green) 0.5px, #f4f7f6 0.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            padding: 20px 0;
+        }
+
+        .main-card {
+            border: none;
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(7, 115, 83, 0.08);
+            border-top: 6px solid var(--globant-green);
+        }
+
+        .app-main-banner {
+            background: linear-gradient(135deg, #1c2e29 0%, #111e1a 100%);
+            border-radius: 14px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-left: 6px solid var(--globant-green-light);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .app-main-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(7, 115, 83, 0.15);
+        }
+        
+        .banner-icon-wrapper {
+            background: rgba(13, 150, 110, 0.15);
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            color: #0d966e;
+            border: 1px solid rgba(13, 150, 110, 0.3);
+        }
+        
+        .banner-text h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .banner-text p {
+            color: #8fa09b;
+            font-size: 13px;
+            margin: 3px 0 0 0;
+            text-transform: uppercase;
+        }
+        
+        .nav-pills .nav-link {
+            color: #8fa09b;
+            font-weight: bold;
+            background-color: var(--globant-dark-bg);
+            margin: 0 4px;
+            transition: all 0.2s ease;
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--globant-green);
+            box-shadow: 0 4px 12px rgba(7, 115, 83, 0.3);
+        }
+
+        .header-premium {
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #077353 0%, #034c36 100%);
+            border-left: 5px solid var(--globant-green-light);
+        }
+
+        .insumos-photo-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 12px; 
+            max-height: 280px; 
+            overflow-y: auto; 
+            padding: 12px; 
+            border-radius: 14px; 
+            background: #f7faf9; 
+            border: 2px dashed #CCCCCC; 
+        }
+        .insumo-card { 
+            border: 1px solid #e2eae7; 
+            border-radius: 12px; 
+            padding: 10px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.25s ease; 
+            background: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+        }
+        .insumo-card:hover { transform: translateY(-3px); border-color: var(--globant-green); }
+        .insumo-card.selected { background: #f0f7f5; border: 2px solid var(--globant-green); }
+        .insumo-card .icon-fallback { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #F4F4F4; border-radius: 8px; }
+        .insumo-card span { font-size: 11px; font-weight: 700; color: #444444; height: 32px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+        .table-wrapper { max-height: 300px; overflow-y: auto; }
+        th { background-color: var(--globant-dark-bg) !important; color: white !important; font-size: 11px; text-transform: uppercase; position: sticky; top: 0; z-index: 2; }
+        
+        .dynamic-grid { max-height: 300px; overflow-y: auto; padding: 10px; background: #FAFAFA; border: 1px solid #e2eae7; border-radius: 8px; }
+        .toast-container { position: fixed; bottom: 25px; right: 25px; z-index: 1050; }
+        
+        .sub-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--globant-green);
+            border-bottom: 2px solid #e2eae7;
+            padding-bottom: 6px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card main-card p-4 bg-white">
+        
+        <div class="app-main-banner mb-4" data-bs-toggle="collapse" data-bs-target="#sistemaInventarioContenedor" aria-expanded="false">
+            <div class="banner-icon-wrapper">
+                <i class="bi bi-box-seam-fill"></i>
+            </div>
+            <div class="banner-text flex-grow-1">
+                <h1>Sistema de Inventario Global</h1>
+                <p><i class="bi bi-globe2 text-success"></i> CONTROL DE STOCK, CÍCLICOS & NOVEDADES — ¡Haz clic para abrir!</p>
+            </div>
+            <div class="text-white fs-4 me-2">
+                <i class="bi bi-chevron-expand"></i>
+            </div>
+        </div>
+
+        <div class="collapse" id="sistemaInventarioContenedor">
+            
+            <a href="https://docs.google.com/spreadsheets/d/1bnE1DBwrjmBcAVnLVRMSqO2tOb-wVwOpT83WAq0LWqE/edit" target="_blank" class="btn btn-dark w-100 py-3 mb-4 fw-bold border border-2 border-success">
+                <i class="bi bi-cloud-arrow-up-fill me-2"></i> 📂 ABRIR EXCEL DE GOOGLE (VER DATOS)
+            </a>
+
+            <ul class="nav nav-pills nav-justified p-2 mb-4 bg-dark rounded-3" id="inventoryTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="insumos-tab" data-bs-toggle="pill" data-bs-target="#inventario" type="button" role="tab">General (Insumos)</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="ciclicos-tab" data-bs-toggle="pill" data-bs-target="#ciclicos" type="button" role="tab">Inventarios Cíclicos</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="stock-tab" data-bs-toggle="pill" data-bs-target="#stock_novedades" type="button" role="tab">Stock & Novedades</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="quejas-tab" data-bs-toggle="pill" data-bs-target="#quejas_tab" type="button" role="tab">Quejas y Reportes</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="inventoryTabsContent">
+                
+                <div class="tab-pane fade show active" id="inventario" role="tabpanel">
+                    <div class="header-premium d-flex justify-content-between align-items-center mb-3">
+                        <span><i class="bi bi-box-seam me-2"></i> Registro de Inventarios Insumos</span>
+                        <button class="btn btn-sm btn-outline-light" onclick="limpiarStorage('insumos')">BORRAR VISTA</button>
+                    </div>
+                    
+                    <div class="card p-3 mb-4 bg-light border border-light-subtle rounded-3">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Fecha</label>
+                                <input type="date" id="genFecha" class="form-control" onchange="renderGeneral()">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">País</label>
+                                <select id="genPais" class="form-select"><option>Colombia</option><option>Ecuador</option><option>Peru</option></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Área</label>
+                                <select id="genDept" class="form-select dept-list"></select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-3 mb-4 rounded-3 border">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-grid-3x3-gap me-2 text-success"></i> Selecciona el Insumo por Foto:</h5>
+                        <div id="photoGridInsumos" class="insumos-photo-grid mb-3"></div>
+                        <div id="selectedInsumoLabel" class="badge bg-dark p-2 mb-3 fs-6">Ningún insumo seleccionado</div>
+                        
+                        <div class="row g-3 align-items-end">
+                            <input type="hidden" id="genInDesc"> 
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Ubicación</label>
+                                <select id="genInUbic" class="form-select ubic-list-simple"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Conteo (Ej: 30+10)</label>
+                                <input type="text" id="genInCant" class="form-control" placeholder="0" onkeydown="if(event.key === 'Enter') guardarGenDirecto()">
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-success w-100 py-2 fw-bold" onclick="guardarGenDirecto()"><i class="bi bi-plus-circle me-2"></i> Guardar en Insumos</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary text-uppercase">Buscar Registro en Tabla</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="genSearch" class="form-control" placeholder="Escribe para buscar..." oninput="renderGeneral()">
+                        </div>
+                    </div>
+
+                    <div class="card border rounded-3 overflow-hidden mb-3">
+                        <div class="table-wrapper table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center align-middle">
+                                <thead><tr><th>Fecha</th><th>Descripción</th><th>Depto</th><th>Ubicación</th><th>Conteo</th><th>País</th></tr></thead>
+                                <tbody id="bodyGeneral"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="alert alert-dark d-flex justify-content-between align-items-center rounded-3 shadow-sm py-3" role="alert">
+                        <span class="fw-bold m-0"><i class="bi bi-calculator me-2 text-info"></i> TOTAL UNIDADES EN LISTA:</span>
+                        <span id="sumGeneral" class="fs-4 fw-bold text-success">0</span>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="ciclicos" role="tabpanel">
+                    <div class="header-premium d-flex justify-content-between align-items-center mb-3">
+                        <span><i class="bi bi-arrow-repeat me-2"></i> Registro de Inventarios Cíclicos</span>
+                        <button class="btn btn-sm btn-outline-light" onclick="limpiarStorage('ciclicos')">BORRAR VISTA</button>
+                    </div>
+                    
+                    <div class="card p-3 mb-4 bg-light border border-light-subtle rounded-3">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Fecha</label>
+                                <input type="date" id="cicFecha" class="form-control" onchange="renderCiclico()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">País</label>
+                                <select id="cicPais" class="form-select"><option>Colombia</option><option>Ecuador</option><option>Peru</option></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Área</label>
+                                <select id="cicDept" class="form-select dept-list"></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Buscar</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="cicSearch" class="form-control" placeholder="Escribe para buscar..." oninput="renderCiclico()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card border rounded-3 overflow-hidden mb-3">
+                        <div class="table-wrapper table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center align-middle">
+                                <thead><tr><th>Ubicación</th><th>Silla/Monitor</th><th>Estado</th><th>Serial</th><th>CO-IT</th></tr></thead>
+                                <tbody id="bodyCiclico"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-6">
+                            <div class="card bg-dark text-white p-3 rounded-3 shadow-sm">
+                                <div class="small fw-bold text-uppercase opacity-75">Sillas</div>
+                                <div id="sumSillas" class="fs-2 fw-bold text-success">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-dark text-white p-3 rounded-3 shadow-sm">
+                                <div class="small fw-bold text-uppercase opacity-75">Monitores</div>
+                                <div id="sumMonitores" class="fs-2 fw-bold text-success">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card p-3 border rounded-3">
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Ubicación</label>
+                                <select id="cicInUbic" class="form-select ubic-list-simple"></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Tipo</label>
+                                <select id="inTipo" class="form-select"><option value="Silla">Silla</option><option value="Monitor">Monitor</option></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">¿Cuántas filas?</label>
+                                <input type="number" id="inCant" class="form-control" value="1" min="1" inputmode="numeric" onkeydown="if(event.key === 'Enter') prepararCic()">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-dark w-100 py-2 fw-bold" onclick="prepararCic()"><i class="bi bi-layers-half me-1"></i> Preparar Filas</button>
+                            </div>
+                        </div>
+                        <div id="gridCic" class="dynamic-grid mb-3" style="display:none;"></div>
+                        <button id="btnSaveCic" class="btn btn-success w-100 py-2 fw-bold shadow-sm" style="display: none;" onclick="guardarCic()"><i class="bi bi-floppy-fill me-2"></i> Guardar Todo en Cíclicos</button>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="stock_novedades" role="tabpanel">
+                    <div class="header-premium d-flex justify-content-between align-items-center mb-3">
+                        <span><i class="bi bi-clock-history me-2"></i> Entradas e Ingresos de Stock</span>
+                        <button class="btn btn-sm btn-outline-light" onclick="limpiarStorage('novedades')">BORRAR VISTA</button>
+                    </div>
+                    
+                    <div class="card p-3 mb-4 bg-light border border-light-subtle rounded-3">
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Buscar en Historiales</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="novSearch" class="form-control" placeholder="Escribe para buscar..." oninput="renderNovedades()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section-title"><i class="bi bi-display me-2"></i> SECCIÓN: SILLAS & MONITORES</div>
+                    
+                    <div class="card border rounded-3 overflow-hidden mb-3">
+                        <div class="table-wrapper table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha Entrada</th>
+                                        <th>Activo</th>
+                                        <th>Responsable / Proveedor</th>
+                                        <th>Nota / Comentario</th>
+                                        <th>Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodyNovActivos"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 rounded-3 mb-4 shadow-sm">
+                        <span class="fw-bold small m-0 text-dark"><i class="bi bi-plus-square-fill text-success me-1"></i> TOTAL INGRESOS SILLAS/MONITORES:</span>
+                        <span id="sumTotalActivos" class="fw-bold fs-5 text-success">0</span>
+                    </div>
+
+                    <div class="card p-3 border rounded-3 mb-5 bg-white">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-plus-fill text-success me-2"></i> Registrar Entrada de Silla o Monitor</h6>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Seleccionar Activo</label>
+                                <select id="novActivoTipo" class="form-select">
+                                    <option value="Silla">🪑 Silla</option>
+                                    <option value="Monitor">🖥️ Monitor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Responsable / Proveedor</label>
+                                <input type="text" id="novActivoResp" class="form-control" placeholder="Ej: Proveedor Central">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Nota / Comentario</label>
+                                <input type="text" id="novActivoNota" class="form-control" placeholder="Ej: Lote nuevo">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Cantidad</label>
+                                <input type="number" id="novActivoCant" class="form-control" placeholder="0" min="1">
+                            </div>
+                            <div class="col-md-1">
+                                <button id="btnSaveNovActivo" class="btn btn-success w-100 fw-bold" onclick="guardarNovedadActivo()"><i class="bi bi-check-lg"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sub-section-title"><i class="bi bi-box-seam-fill me-2"></i> SECCIÓN: INSUMOS GENERALES</div>
+                    
+                    <div class="card border rounded-3 overflow-hidden mb-3">
+                        <div class="table-wrapper table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha Entrada</th>
+                                        <th>Insumo</th>
+                                        <th>Cantidad Llegada</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodyNovInsumos"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-dark d-flex justify-content-between align-items-center py-2 px-3 rounded-3 mb-4 shadow-sm">
+                        <span class="fw-bold small m-0 text-dark"><i class="bi bi-plus-square-fill text-success me-1"></i> TOTAL INGRESOS INSUMOS:</span>
+                        <span id="sumTotalInsumos" class="fw-bold fs-5 text-success">0</span>
+                    </div>
+
+                    <div class="card p-3 border rounded-3 bg-white">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-plus text-success me-2"></i> Registrar Entrada de Insumo Nuevo</h6>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Insumo</label>
+                                <select id="novInsumoDesc" class="form-select"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Cantidad que Llega</label>
+                                <input type="number" id="novInsumoCant" class="form-control" placeholder="0" min="1" onkeydown="if(event.key === 'Enter') guardarNovedadInsumo()">
+                            </div>
+                            <div class="col-md-2">
+                                <button id="btnSaveNovInsumo" class="btn btn-success w-100 fw-bold" onclick="guardarNovedadInsumo()"><i class="bi bi-save me-1"></i> Registrar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="tab-pane fade" id="quejas_tab" role="tabpanel">
+                    <div class="header-premium d-flex justify-content-between align-items-center mb-3">
+                        <span><i class="bi bi-chat-left-dots-fill me-2"></i> Buzón de Sugerencias</span>
+                        <button class="btn btn-sm btn-outline-light" onclick="limpiarStorage('quejas')">BORRAR VISTA</button>
+                    </div>
+
+                    <div id="chatQuejas" class="mb-4 d-flex flex-column gap-2 p-3 bg-light border rounded-3 shadow-inner" style="max-height: 350px; overflow-y: auto;"></div>
+
+                    <div class="card p-3 border rounded-3">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-pencil-square me-2 text-success"></i> Enviar un Reporte o sugerencia</h5>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Nombre (Obligatorio)</label>
+                                <input type="text" id="qNombre" class="form-control" placeholder="Escribe tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Área</label>
+                                <select id="qDept" class="form-select dept-list"></select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Descripción de la Queja o Malestar de Herramienta</label>
+                            <textarea id="qMensaje" rows="3" class="form-control" placeholder="Describe detalladamente la situación o el producto dañado..."></textarea>
+                        </div>
+                        <button class="btn btn-success text-white fw-bold w-100 py-2 shadow-sm" onclick="guardarQueja()"><i class="bi bi-send-fill me-2"></i> Enviar Reporte</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        
+    </div>
+</div>
+
+<div class="toast-container">
+    <div id="toastNotification" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-bold" id="toastMessage"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPTFlBNzeudoKuZLkD8tWEQrIHOHOa21hLn45221KjOgFqTm1vNg_1CgXMVEjv5vTQ/exec";
+    const departamentos = ["LOG Connecta","LOG One Plaza","SD Torre CCI","SD Connecta","SD One Plaza"];
+    
+    const insumosConFotos = [
+        { nombre: "Mouse", emoji: "🖱️", url: "" },
+        { nombre: "Teclado", emoji: "⌨️", url: "" },
+        { nombre: "Caja pala Dell o Lenovo", emoji: "📦", url: "" },
+        { nombre: "Caja para mack", emoji: "📦", url: "" },
+        { nombre: "Caja para cargador ", emoji: "📦", url: "" },
+        { nombre: "Caja para maletas NH", emoji: "📦", url: "" },
+        { nombre: "Caja para sillas ", emoji: "📦", url: "" },
+        { nombre: "Caja monitor ", emoji: "📦", url: "" },
+        { nombre: "Cajas de kit ", emoji: "📦", url: "" },
+        { nombre: "Rollo de vinipel ", emoji: "🔄", url: "" },
+        { nombre: "Carton corrugado ", emoji: "📜", url: "" },
+        { nombre: "Rollo de plástico burbuja ", emoji: "🫧", url: "" },
+        { nombre: "Suncho plástico ", emoji: "🎗️", url: "" },
+        { nombre: "Grapa para suncho plástico ", emoji: "📎", url: "" },
+        { nombre: "Cinta trasparente ancha ", emoji: "📼", url: "" },
+        { nombre: "Cinta trasparente delgada", emoji: "📼", url: "" },
+        { nombre: "Cinta de enmascarar ancha ", emoji: "📼", url: "" },
+        { nombre: "Cinta de enmascarar delgada ", emoji: "📼", url: "" },
+        { nombre: "Sobre de Manila tamaño carta ", emoji: "✉️", url: "" },
+        { nombre: "Sobre de Manila oficio", emoji: "✉️", url: "" },
+        { nombre: "Sobre de Manila extra ", emoji: "✉️", url: "" },
+        { nombre: "Sobre para yubikey ", emoji: "🔑", url: "" },
+        { nombre: "Bolsa de valor carta ", emoji: "🛍️", url: "" },
+        { nombre: "Bolsas de valor oficio ", emoji: "🛍️", url: "" },
+        { nombre: "Bolsas servientrega ", emoji: "🚚", url: "" },
+        { nombre: "Llaves exagonas ", emoji: "🔧", url: "" },
+        { nombre: "Destornillador de pala", emoji: "🪛", url: "" },
+        { nombre: "Destornillador de estella ", emoji: "🪛", url: "" },
+        { nombre: "Destornillador de varias piezas ", emoji: "🪛", url: "" },
+        { nombre: "Martillo de goma ", emoji: "🔨", url: "" },
+        { nombre: "Encintador ", emoji: "🎀", url: "" },
+        { nombre: "Tijeras", emoji: "✂️", url: "" },
+        { nombre: "Bisturi ", emoji: "🔪", url: "" },
+        { nombre: "Post-it paquete ", emoji: "📝", url: "" },
+        { nombre: "Esfero ", emoji: "🖊️", url: "" },
+        { nombre: "Marcadores ", emoji: "🖍️", url: "" },
+        { nombre: "Guantes de nitrillo ", emoji: "🧤", url: "" },
+        { nombre: "Guantes desechables ", emoji: "🧤", url: "" },
+        { nombre: "Grapadora ", emoji: "🗜️", url: "" },
+        { nombre: "Abre huecos ", emoji: "🕳️", url: "" },
+        { nombre: "Quitaganchos ", emoji: "⛏️", url: "" },
+        { nombre: "Guillotina ", emoji: "📐", url: "" },
+        { nombre: "Punteras ", emoji: "👟", url: "" },
+        { nombre: "Escalera ", emoji: "🪜", url: "" },
+        { nombre: "Carritos", emoji: "🛒", url: "" }
+    ];
+
+    function obtenerFechaEstandar() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function mostrarToast(mensaje) {
+        const toastEl = document.getElementById("toastNotification");
+        document.getElementById("toastMessage").innerHTML = `🎉 ${mensaje}`;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+
+    function llenarListas() {
+        document.querySelectorAll(".dept-list").forEach(el => {
+            el.innerHTML = departamentos.map(d => `<option value="${d}">${d}</option>`).join('');
+        });
+        
+        const insumoSelect = document.getElementById("novInsumoDesc");
+        if(insumoSelect) {
+            insumoSelect.innerHTML = insumosConFotos.map(i => {
+                const nombreItem = i.nombre || i.font_name;
+                return `<option value="${nombreItem}">${i.emoji} ${nombreItem}</option>`;
+            }).join('');
+        }
+
+        const ubicSimple = ["CD-A", "CD-C", "S1-A", "S1-C", "P4-A", "P4-C", "CD", "S1", "P4"];
+        document.querySelectorAll(".ubic-list-simple").forEach(el => {
+            el.innerHTML = ubicSimple.map(u => `<option value="${u}">${u}</option>`).join('');
+        });
+
+        renderPhotoGrid();
+    }
+
+    function renderPhotoGrid() {
+        const grid = document.getElementById("photoGridInsumos");
+        grid.innerHTML = insumosConFotos.map(insumo => {
+            const nombreItem = insumo.nombre || insumo.font_name;
+            return `
+                <div class="insumo-card" onclick="selectInsumoCard(this, '${nombreItem}')">
+                    <div class="icon-fallback">${insumo.emoji}</div>
+                    <span>${nombreItem}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectInsumoCard(element, nombreInsumo) {
+        document.querySelectorAll(".insumo-card").forEach(card => card.classList.remove("selected"));
+        element.classList.add("selected");
+        document.getElementById("genInDesc").value = nombreInsumo;
+        document.getElementById("selectedInsumoLabel").innerText = `Seleccionado: ${nombreInsumo}`;
+        document.getElementById("genInCant").focus();
+    }
+
+    window.onload = () => {
+        llenarListas();
+        const t = obtenerFechaEstandar();
+        document.querySelectorAll("input[type='date']").forEach(d => d.value = t);
+        renderGeneral(); renderCiclico(); renderNovedades(); renderQuejas();
+    };
+
+    function limpiarStorage(tipo) {
+        if(confirm("¿Seguro que quieres limpiar esta tabla vista? Esto NO borrará los datos del Excel central de Google.")){
+            if(tipo === 'insumos') {
+                localStorage.removeItem('db_Final_Insumos_V7');
+                renderGeneral();
+            } else if(tipo === 'ciclicos') {
+                localStorage.removeItem('db_Final_Ciclicos_V7');
+                renderCiclico();
+            } else if(tipo === 'novedades') {
+                localStorage.removeItem('db_Final_Novedades_V7');
+                renderNovedades();
+            } else if(tipo === 'quejas') {
+                localStorage.removeItem('db_Final_Quejas_V7');
+                renderQuejas();
+            }
+        }
+    }
+
+    async function enviarAGoogle(datos) {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(datos)
+            });
+        } catch (e) { console.error("Error al enviar:", e); }
+    }
+
+    async function guardarGenDirecto() {
+        let data = JSON.parse(localStorage.getItem('db_Final_Insumos_V7')) || [];
+        const f = document.getElementById('genFecha').value;
+        const p = document.getElementById('genPais').value;
+        const d = document.getElementById('genDept').value;
+        const desc = document.getElementById('genInDesc').value;
+        const u = document.getElementById('genInUbic').value;
+        const valorRaw = document.getElementById('genInCant').value.trim();
+
+        if(!desc) return alert("Por favor, selecciona primero un insumo haciendo clic en su foto.");
+        if(!valorRaw) return alert("Escribe un conteo");
+
+        const esDuplicado = data.some(item => item.f === f && item.desc === desc && item.u === u);
+        if (esDuplicado) {
+            alert(`¡Este dato ya está guardado! Ya existe un registro para el insumo "${desc}" en la ubicación "${u}" para la fecha ${f}.`);
+            return;
+        }
+
+        let total = valorRaw.split('+').reduce((acc, curr) => acc + (parseFloat(curr.trim()) || 0), 0);
+
+        const btn = document.querySelector("#inventario .btn-success");
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...`;
+
+        try {
+            data.push({f, p, d, desc, u, total, original: valorRaw});
+            localStorage.setItem('db_Final_Insumos_V7', JSON.stringify(data));
+            
+            await enviarAGoogle([f, p, d, desc, u, valorRaw, "INSUMO"]);
+            
+            document.getElementById('genInCant').value = "";
+            document.querySelectorAll(".insumo-card").forEach(card => card.classList.remove("selected"));
+            document.getElementById("genInDesc").value = "";
+            document.getElementById("selectedInsumoLabel").innerText = "Ningún insumo seleccionado";
+
+            renderGeneral();
+            mostrarToast("Enviado a Hoja de Insumos.");
+        } catch (e) {
+            alert("Error al guardar.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function renderGeneral() {
+        const s = document.getElementById('genSearch').value.toLowerCase();
+        let data = JSON.parse(localStorage.getItem('db_Final_Insumos_V7')) || [];
+        const tbody = document.getElementById('bodyGeneral');
+        tbody.innerHTML = ""; let t = 0;
+        data.forEach(item => {
+            if(item.desc.toLowerCase().includes(s)) {
+                t += item.total;
+                tbody.innerHTML += `<tr><td><span class="badge bg-secondary">${item.f}</span></td><td><b>${item.desc}</b></td><td>${item.d}</td><td>${item.u}</td><td>${item.original} (${item.total})</td><td>${item.p}</td></tr>`;
+            }
+        });
+        document.getElementById('sumGeneral').innerText = t;
+    }
+
+    function prepararCic() {
+        const c = document.getElementById('inCant').value;
+        const g = document.getElementById('gridCic');
+        g.innerHTML = ''; 
+        for(let i=0; i<c; i++) {
+            g.innerHTML += `
+                <div class="row g-2 align-items-center mb-2 bg-white p-2 rounded shadow-sm">
+                    <div class="col-sm-2"><select class="form-select form-select-sm c-pref"><option value="CO-WE">CO-WE</option><option value="CO-FA">CO-FA</option></select></div>
+                    <div class="col-sm-3"><input type="text" class="form-control form-control-sm c-num" placeholder="Número"></div>
+                    <div class="col-sm-2"><select class="form-select form-select-sm c-est"><option value="Stock">Stock</option><option value="Repair">Repair</option></select></div>
+                    <div class="col-sm-3"><input type="text" class="form-control form-control-sm c-ser" placeholder="Serial"></div>
+                    <div class="col-sm-2"><input type="text" class="form-control form-control-sm c-coit" placeholder="CO-IT" onkeydown="if(event.key === 'Enter') guardarCic()"></div>
+                </div>
+            `;
+        }
+        g.style.display = "block"; document.getElementById('btnSaveCic').style.display = "block";
+    }
+
+    async function guardarCic() {
+        let data = JSON.parse(localStorage.getItem('db_Final_Ciclicos_V7')) || [];
+        const f = document.getElementById('cicFecha').value;
+        const d = document.getElementById('cicDept').value;
+        const u = document.getElementById('cicInUbic').value;
+        const t = document.getElementById('inTipo').value;
+        
+        const prefs = document.querySelectorAll('.c-pref');
+        const nums = document.querySelectorAll('.c-num');
+        const ests = document.querySelectorAll('.c-est');
+        const sers = document.querySelectorAll('.c-ser');
+        const coits = document.querySelectorAll('.c-coit');
+
+        for (let i = 0; i < prefs.length; i++) {
+            const sillaFull = `${prefs[i].value} ${nums[i].value.trim()}`;
+            const serialVal = sers[i].value.trim() || "-";
+
+            const esSillaDuplicada = data.some(item => item.f === f && item.sillaFull === sillaFull && nums[i].value.trim() !== "");
+            const esSerialDuplicated = data.some(item => item.f === f && item.serialVal === serialVal && serialVal !== "-");
+
+            if (esSillaDuplicada || esSerialDuplicated) {
+                alert(`¡Este dato ya está guardado! El código o serial ya fue registrado en la fecha ${f}.`);
+                return;
+            }
+        }
+
+        const btn = document.getElementById('btnSaveCic');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...`;
+
+        try {
+            for (let i = 0; i < prefs.length; i++) {
+                const sillaFull = `${prefs[i].value} ${nums[i].value.trim()}`;
+                const estadoVal = ests[i].value;
+                const serialVal = sers[i].value.trim() || "-";
+                const coitVal = coits[i].value.trim() || "-";
+
+                data.push({ f, d, u, sillaFull, e: estadoVal, serialVal, coitVal, t });
+                await enviarAGoogle([f, d, u, sillaFull, estadoVal, serialVal, coitVal, t, "CICLICO"]);
+            }
+
+            localStorage.setItem('db_Final_Ciclicos_V7', JSON.stringify(data));
+            document.getElementById('gridCic').innerHTML = "";
+            document.getElementById('gridCic').style.display = "none";
+            btn.style.display = "none";
+            
+            renderCiclico();
+            mostrarToast("Cíclicos guardados con éxito.");
+        } catch (e) {
+            alert("Error al procesar.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function renderCiclico() {
+        const s = document.getElementById('cicSearch').value.toLowerCase();
+        let data = JSON.parse(localStorage.getItem('db_Final_Ciclicos_V7')) || [];
+        const tbody = document.getElementById('bodyCiclico');
+        tbody.innerHTML = ""; let si = 0, mo = 0;
+        data.forEach(item => {
+            if(item.sillaFull.toLowerCase().includes(s) || item.u.toLowerCase().includes(s)) {
+                if(item.t === "Silla") si++; else mo++;
+                const badgeColor = item.e === 'Stock' ? 'bg-success' : 'bg-danger';
+                tbody.innerHTML += `<tr><td><b>${item.u}</b></td><td><b>${item.sillaFull}</b></td><td><span class="badge ${badgeColor}">${item.e}</span></td><td>${item.serialVal}</td><td>${item.coitVal}</td></tr>`;
+            }
+        });
+        document.getElementById('sumSillas').innerText = si;
+        document.getElementById('sumMonitores').innerText = mo;
+    }
+
+    async function guardarNovedadActivo() {
+        let data = JSON.parse(localStorage.getItem('db_Final_Novedades_V7')) || [];
+        const fecha = obtenerFechaEstandar();
+        const desc = document.getElementById('novActivoTipo').value;
+        const resp = document.getElementById('novActivoResp').value.trim();
+        const nota = document.getElementById('novActivoNota').value.trim() || "-";
+        const cant = parseInt(document.getElementById('novActivoCant').value) || 0;
+
+        if(!resp) {
+            alert("Por favor introduce el Responsable / Proveedor.");
+            return;
+        }
+        if(cant <= 0) return alert("Por favor introduce una cantidad válida.");
+
+        const esDuplicado = data.some(item => item.fecha === fecha && item.desc === desc && item.resp === resp && item.cant === cant);
+        if (esDuplicado) {
+            alert(`¡Este dato ya está guardado! Ya se registró este ingreso de "${desc}" hoy.`);
+            return;
+        }
+
+        const btn = document.getElementById('btnSaveNovActivo');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+        try {
+            data.push({ fecha, desc, cant, resp, nota, categoria: "ACTIVO" });
+            localStorage.setItem('db_Final_Novedades_V7', JSON.stringify(data));
+
+            await enviarAGoogle([fecha, desc, cant, resp, nota, "", "", "", "NOVEDAD_ACTIVO"]);
+
+            document.getElementById('novActivoResp').value = "";
+            document.getElementById('novActivoNota').value = "";
+            document.getElementById('novActivoCant').value = "";
+            
+            renderNovedades();
+            mostrarToast("Activo registrado.");
+        } catch (e) {
+            alert("Inconveniente al procesar el activo.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    async function guardarNovedadInsumo() {
+        let data = JSON.parse(localStorage.getItem('db_Final_Novedades_V7')) || [];
+        const fecha = obtenerFechaEstandar();
+        const desc = document.getElementById('novInsumoDesc').value;
+        const cant = parseInt(document.getElementById('novInsumoCant').value) || 0;
+
+        if(cant <= 0) return alert("Por favor introduce una cantidad válida.");
+
+        const esDuplicado = data.some(item => item.fecha === fecha && item.desc === desc && item.cant === cant);
+        if (esDuplicado) {
+            alert(`¡Este dato ya está guardado! Ya ingresaste este lote de "${desc}" hoy.`);
+            return;
+        }
+
+        const btn = document.getElementById('btnSaveNovInsumo');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Guardando...`;
+
+        try {
+            data.push({ fecha, desc, cant, resp: "-", nota: "-", categoria: "INSUMO" });
+            localStorage.setItem('db_Final_Novedades_V7', JSON.stringify(data));
+
+            await enviarAGoogle([fecha, desc, cant, "-", "-", "", "", "", "NOVEDAD_INSUMO"]);
+
+            document.getElementById('novInsumoCant').value = "";
+            
+            renderNovedades();
+            mostrarToast("Insumo registrado.");
+        } catch (e) {
+            alert("Inconveniente al procesar el insumo.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function renderNovedades() {
+        const s = document.getElementById('novSearch').value.toLowerCase();
+        let data = JSON.parse(localStorage.getItem('db_Final_Novedades_V7')) || [];
+        
+        const tbodyActivos = document.getElementById('bodyNovActivos');
+        const tbodyInsumos = document.getElementById('bodyNovInsumos');
+        
+        tbodyActivos.innerHTML = "";
+        tbodyInsumos.innerHTML = "";
+        
+        let totalActivos = 0;
+        let totalInsumos = 0;
+        
+        data.forEach(item => {
+            const matchesSearch = item.desc.toLowerCase().includes(s) || (item.resp && item.resp.toLowerCase().includes(s));
+            
+            if(matchesSearch) {
+                const categoria = item.categoria || ((item.desc === "Silla" || item.desc === "Monitor") ? "ACTIVO" : "INSUMO");
+                
+                if(categoria === "ACTIVO") {
+                    totalActivos += item.cant;
+                    tbodyActivos.innerHTML += `
+                        <tr>
+                            <td><span class="badge bg-secondary">${item.fecha}</span></td>
+                            <td><b>${item.desc}</b></td>
+                            <td>${item.resp || '-'}</td>
+                            <td>${item.nota || '-'}</td>
+                            <td class="text-success fw-bold">+ ${item.cant}</td>
+                        </tr>`;
+                } else {
+                    totalInsumos += item.cant;
+                    tbodyInsumos.innerHTML += `
+                        <tr>
+                            <td><span class="badge bg-secondary">${item.fecha}</span></td>
+                            <td><b>${item.desc}</b></td>
+                            <td class="text-success fw-bold">+ ${item.cant}</td>
+                        </tr>`;
+                }
+            }
+        });
+        
+        document.getElementById('sumTotalActivos').innerText = totalActivos;
+        document.getElementById('sumTotalInsumos').innerText = totalInsumos;
+    }
+
+    function guardarQueja() {
+        let data = JSON.parse(localStorage.getItem('db_Final_Quejas_V7')) || [];
+        const fecha = obtenerFechaEstandar();
+        const hora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const nombre = document.getElementById('qNombre').value.trim();
+        const dept = document.getElementById('qDept').value;
+        const mensaje = document.getElementById('qMensaje').value.trim();
+
+        if(!nombre || !mensaje) return alert("Campos obligatorios vacíos.");
+
+        data.push({ fecha, hora, nombre, dept, mensaje });
+        localStorage.setItem('db_Final_Quejas_V7', JSON.stringify(data));
+
+        enviarAGoogle([fecha, hora, nombre, dept, mensaje, "", "", "", "QUEJA"]);
+
+        document.getElementById('qNombre').value = "";
+        document.getElementById('qMensaje').value = "";
+        renderQuejas();
+    }
+
+    function renderQuejas() {
+        let data = JSON.parse(localStorage.getItem('db_Final_Quejas_V7')) || [];
+        const chatContainer = document.getElementById('chatQuejas');
+        chatContainer.innerHTML = data.length === 0 ? "<p class='text-muted text-center my-3'>No hay reportes.</p>" : "";
+
+        data.forEach(q => {
+            chatContainer.innerHTML += `
+                <div class="bg-white p-3 rounded-3 shadow-sm border-start border-4 border-success mb-2">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span><b>${q.nombre}</b> (${q.dept})</span>
+                        <span>${q.fecha} - ${q.hora}</span>
+                    </div>
+                    <div class="text-dark small">${q.mensaje}</div>
+                </div>`;
+        });
+    }
+</script>
+</body>
+</html>
